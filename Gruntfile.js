@@ -26,8 +26,8 @@ module.exports = function(grunt) {
                 options: {
                     open: true,
                     //自动打开网页 http://
-                    base: ['src' //主目录
-                    ]
+                   /* base: ['*' //主目录
+                    ]*/
                 }
             }
         },
@@ -96,7 +96,9 @@ module.exports = function(grunt) {
                 },
 
                 files: [ //下面文件的改变就会实时刷新网页
-                'src/*.html', 'src/style/{,*/}*.css', 'src/{,*/}*.js', 'src/images/{,*/}*.{png,jpg}'],
+                'src/*.html', 'src/style/{,*/}*.css', 'src/{,*/}*.js', 'src/images/{,*/}*.{png,jpg}',
+                'test/**/*.js'
+                ],
                 scripts: {
                     files: [jsPath + '/**/*.js'],
                     tasks: ['jshint'],
