@@ -31,6 +31,17 @@ module.exports = function(grunt) {
                 }
             }
         },
+          less: {
+            development: {
+                files: [{
+                    expand: true,
+                    cwd: './src/less/',
+                    src: ['**/*.less'],
+                    dest: './src/css',
+                    ext: '.css'
+                }]
+            }
+        },
         imagemin: {
             /* 压缩优化图片大小 */
             dist: {
@@ -104,6 +115,16 @@ module.exports = function(grunt) {
                     tasks: ['jshint'],
 
                 },
+            },
+            compileLess:{
+                 options: {
+                    livereload: true
+                },
+                 files: ['./src/less/**/*.less'],
+                    tasks: ['less'],
+                    options: {
+                        spawn: false,
+                    }
             }
         },
 
@@ -126,6 +147,7 @@ module.exports = function(grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-csslint');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
+    grunt.loadNpmTasks('grunt-contrib-less');
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
@@ -136,4 +158,6 @@ module.exports = function(grunt) {
     grunt.registerTask('imagemin', ['imagemin']); //图片优化 jshint concat js uglify
     grunt.registerTask('css', ['clean:css','csslint', 'concat:css', 'cssmin']); //css检查，压缩，合并
     grunt.registerTask('js', ['clean:js','jshint', 'concat:js', 'uglify']); //JS检查，压缩，合并
+    grunt.registerTask('cimpile_less', ['watch:compileLess']); //Less 的编译
+    grunt.registerTask('aaa', 'less'); //Less 的编译
 }; 

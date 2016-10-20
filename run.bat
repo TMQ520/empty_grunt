@@ -1,4 +1,4 @@
 call %~d0
 call cd %~dp0
-call grunt
+call grunt aaa
 pause
