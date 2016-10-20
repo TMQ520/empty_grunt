@@ -15,6 +15,7 @@ module.exports = function(grunt) {
     var requireJsModules = [];  
     grunt.file.expand({cwd:jsPath+"/"}, "**/*.js").forEach( function (file) {  
         if(/qunit.*/i.test(file))return;
+        if(/require.*/i.test(file))return;
             requireJsModules.push(file.replace(/\.js$/, ''));
     });
 
@@ -163,6 +164,9 @@ module.exports = function(grunt) {
             filter: 'isFile',
           },
         },
+        qunit: {
+            all: ['test/**/*.html']
+          }
 
     });
     grunt.loadNpmTasks('grunt-contrib-watch');
@@ -170,6 +174,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-qunit');
 
     grunt.loadNpmTasks('grunt-contrib-csslint');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
@@ -186,6 +191,7 @@ module.exports = function(grunt) {
     grunt.registerTask('css', ['clean:css', 'csslint', 'concat:css', 'cssmin']); //css检查，压缩，合并
     grunt.registerTask('js', ['clean:js', 'jshint', 'concat:js', 'uglify']); //JS检查，压缩，合并
     grunt.registerTask('cimpile_less', ['watch:compileLess']); //Less 的编译
-    grunt.registerTask('aaa', 'less'); //Less 的编译
+    grunt.registerTask('less', 'less'); //Less 的编译
     grunt.registerTask('require', ['copy','requirejs']); //Less 的编译
+    grunt.registerTask('test', ['connect:server','qunit']); //Less 的编译
 };
