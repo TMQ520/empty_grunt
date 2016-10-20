@@ -8,7 +8,15 @@ module.exports = function(grunt) {
 
     buildPath = "build/",
 
+    externalPath= "./external/",
+
     testPath = "test";
+
+    var requireJsModules = [];  
+    grunt.file.expand({cwd:jsPath+"/"}, "**/*.js").forEach( function (file) {  
+        if(/qunit.*/i.test(file))return;
+            requireJsModules.push(file.replace(/\.js$/, ''));
+    });
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
@@ -26,12 +34,12 @@ module.exports = function(grunt) {
                 options: {
                     open: true,
                     //自动打开网页 http://
-                   /* base: ['*' //主目录
-                    ]*/
+                    /* base: ['*' //主目录
+                   ]*/
                 }
             }
         },
-          less: {
+        less: {
             development: {
                 files: [{
                     expand: true,
@@ -96,7 +104,7 @@ module.exports = function(grunt) {
                 expand: true,
                 cwd: cssPath + '/',
                 src: '<%= pkg.name%>.css',
-                dest: buildPath+'css/',
+                dest: buildPath + 'css/',
                 ext: '<%= pkg.version %>.min.css'
             }
         },
@@ -107,43 +115,61 @@ module.exports = function(grunt) {
                 },
 
                 files: [ //下面文件的改变就会实时刷新网页
-                'src/*.html', 'src/style/{,*/}*.css', 'src/{,*/}*.js', 'src/images/{,*/}*.{png,jpg}',
-                'test/**/*.js'
-                ],
+                'src/*.html', 'src/style/{,*/}*.css', 'src/{,*/}*.js', 'src/images/{,*/}*.{png,jpg}', 'test/**/*.js'],
                 scripts: {
                     files: [jsPath + '/**/*.js'],
                     tasks: ['jshint'],
 
                 },
             },
-            compileLess:{
-                 options: {
+            compileLess: {
+                options: {
                     livereload: true
                 },
-                 files: ['./src/less/**/*.less'],
-                    tasks: ['less'],
-                    options: {
-                        spawn: false,
-                    }
+                files: ['./src/less/**/*.less'],
+                tasks: ['less'],
+                options: {
+                    spawn: false,
+                }
             }
         },
 
         clean: {
             css: {
-                src:[
-                    '<%=concat.css.dest%>',
-                ]
+                src: ['<%=concat.css.dest%>', ]
             },
-            js:{
-                src:'<%=concat.js.dest%>'
+            js: {
+                src: '<%=concat.js.dest%>'
             }
-        }
+        },
+        requirejs: {
+            compile: {
+                options: {
+                    baseUrl: "./src/js/",
+                    mainConfigFile: "./src/js/config.js",
+                    name: "reqiure/almond",
+                    include: requireJsModules,
+                    out: "<%= uglify.build.dest %>",
+                    wrap:true
+                }
+            }
+        },
+        copy: {
+          main: {
+            expand: true,
+            cwd: 'external/',
+            src: '**',
+            dest: 'src/js/',
+            filter: 'isFile',
+          },
+        },
 
     });
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-concat');
     grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-contrib-copy');
 
     grunt.loadNpmTasks('grunt-contrib-csslint');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
@@ -151,13 +177,15 @@ module.exports = function(grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-requirejs');
 
     grunt.loadNpmTasks('grunt-contrib-imagemin');
 
     grunt.registerTask('default', ['connect:server', 'watch']);
     grunt.registerTask('imagemin', ['imagemin']); //图片优化 jshint concat js uglify
-    grunt.registerTask('css', ['clean:css','csslint', 'concat:css', 'cssmin']); //css检查，压缩，合并
-    grunt.registerTask('js', ['clean:js','jshint', 'concat:js', 'uglify']); //JS检查，压缩，合并
+    grunt.registerTask('css', ['clean:css', 'csslint', 'concat:css', 'cssmin']); //css检查，压缩，合并
+    grunt.registerTask('js', ['clean:js', 'jshint', 'concat:js', 'uglify']); //JS检查，压缩，合并
     grunt.registerTask('cimpile_less', ['watch:compileLess']); //Less 的编译
     grunt.registerTask('aaa', 'less'); //Less 的编译
-}; 
+    grunt.registerTask('require', ['copy','requirejs']); //Less 的编译
+};
