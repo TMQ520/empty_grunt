@@ -12,10 +12,11 @@ module.exports = function(grunt) {
 
     testPath = "test";
 
-    var requireJsModules = [];  
+    var requireJsModules = ["config"];  
     grunt.file.expand({cwd:jsPath+"/"}, "**/*.js").forEach( function (file) {  
         if(/qunit.*/i.test(file))return;
         if(/require.*/i.test(file))return;
+        if(/almond.*/i.test(file))return;
             requireJsModules.push(file.replace(/\.js$/, ''));
     });
 
@@ -84,6 +85,10 @@ module.exports = function(grunt) {
                 src: jsPath + '/**/*.js',
                 /* 根据目录下文件情况配置 如果可以使用 require.js/LABjs 等配置更佳 */
                 dest: jsPath + '/<%=pkg.name%>.js'
+            },
+            requires:{
+                src:["config/require.config.js","build/requires.js"],
+                dest:"<%=requirejs.compile.options.mainConfigFile%>"
             }
         },
         uglify: {
@@ -141,6 +146,9 @@ module.exports = function(grunt) {
             },
             js: {
                 src: '<%=concat.js.dest%>'
+            },
+            requirefiles:{
+                src:["src/js/almond.js","src/js/config.js","build/requires.js"]
             }
         },
         requirejs: {
@@ -148,7 +156,7 @@ module.exports = function(grunt) {
                 options: {
                     baseUrl: "./src/js/",
                     mainConfigFile: "./src/js/config.js",
-                    name: "reqiure/almond",
+                    name: "almond",
                     include: requireJsModules,
                     out: "<%= uglify.build.dest %>",
                     wrap:true
@@ -163,10 +171,36 @@ module.exports = function(grunt) {
             dest: 'src/js/',
             filter: 'isFile',
           },
+          almondjs:{
+            expand: true,
+            cwd: 'external/reqiure/',
+
+            src:"almond.js",
+            dest:"src/js/"
+          }
         },
         qunit: {
             all: ['test/**/*.html']
+          },
+      "file-creator": {
+        "basic": {
+          "build/requires.js": function(fs, fd, done) {
+            var requireModules="require([";
+            grunt.file.expand({cwd:jsPath+"/"}, "**/*.js").forEach( function (file,index) {  
+                if(/qunit.*/i.test(file))return;
+                if(/require.*/i.test(file))return;
+                if(/config.*/i.test(file))return;
+                if(/almond.*/i.test(file))return;
+                    var item=file.replace(/\.js$/, '').split("/");
+                    requireModules+="'"+item[item.length-1]+"'";
+            });
+            requireModules+="],function () {});";
+            fs.writeSync(fd, requireModules.replace("''","','"));
+            done();
           }
+        }
+        
+      }
 
     });
     grunt.loadNpmTasks('grunt-contrib-watch');
@@ -185,6 +219,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-requirejs');
 
     grunt.loadNpmTasks('grunt-contrib-imagemin');
+    grunt.loadNpmTasks('grunt-file-creator');
 
     grunt.registerTask('default', ['connect:server', 'watch']);
     grunt.registerTask('imagemin', ['imagemin']); //图片优化 jshint concat js uglify
@@ -194,4 +229,5 @@ module.exports = function(grunt) {
     grunt.registerTask('less', 'less'); //Less 的编译
     grunt.registerTask('require', ['copy','requirejs']); //Less 的编译
     grunt.registerTask('test', ['connect:server','qunit']); //Less 的编译
+    grunt.registerTask('amdjs', ["file-creator","concat:requires","copy:almondjs","requirejs","clean:requirefiles"]); //
 };
