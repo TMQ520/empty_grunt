@@ -130,13 +130,20 @@ module.exports = function(grunt) {
             },
             compileLess: {
                 options: {
+                    spawn: false,
                     livereload: true
                 },
                 files: ['./src/less/**/*.less'],
                 tasks: ['less'],
-                options: {
-                    spawn: false,
-                }
+               
+            },
+            createTest:{
+                options:{
+                    livereload:true,
+                    // event: ['added'],
+                },
+                files:['src/js/**/*.js'],
+                
             }
         },
 
@@ -148,7 +155,7 @@ module.exports = function(grunt) {
                 src: '<%=concat.js.dest%>'
             },
             requirefiles:{
-                src:["src/js/almond.js","src/js/config.js","build/requires.js"]
+                src:["src/js/almond.js","src/js/config.js"]
             }
         },
         requirejs: {
@@ -199,10 +206,15 @@ module.exports = function(grunt) {
             done();
           }
         }
+
         
       }
 
     });
+
+   
+
+
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-concat');
@@ -229,5 +241,19 @@ module.exports = function(grunt) {
     grunt.registerTask('less', 'less'); //Less 的编译
     grunt.registerTask('require', ['copy','requirejs']); //Less 的编译
     grunt.registerTask('test', ['connect:server','qunit']); //Less 的编译
-    grunt.registerTask('amdjs', ["file-creator","concat:requires","copy:almondjs","requirejs","clean:requirefiles"]); //
+    grunt.registerTask('amdjs', ["file-creator:basic","concat:requires","copy:almondjs","requirejs","clean:requirefiles"]); //
+    grunt.registerTask("tests","test watch write",function  (argument) {
+         grunt.event.on('watch', function(action, filepath) {
+              if ("added"==action) {
+                 var testJsName=filepath.replace(".js","Test.js").replace(/^src\\(.*)/,"test\\$1");
+                var shorname=testJsName.substring(testJsName.lastIndexOf("\\")+1);
+                var testDir=testJsName.substr(0,testJsName.lastIndexOf("\\")+1);
+                grunt.file.write(testJsName,grunt.file.read("config/testTemplate.js"));
+                var content=grunt.file.read("config/testTemplate.html").replace("%=filename=%",shorname).replace(/%=root=%/g,testDir.replace(/([^\\]+)\\/g,"..\\"));
+                grunt.file.write(testJsName.replace(".js",".html"),content);
+              // grunt.log.writeln("name:%s;shortname:%s;dirname:%s;",testJsName,shorname,testDir);
+              }
+         });
+    });
+    grunt.registerTask("zzz",["tests","watch:createTest"]);
 };
