@@ -202,7 +202,7 @@ module.exports = function(grunt) {
                     requireModules+="'"+item[item.length-1]+"'";
             });
             requireModules+="],function () {});";
-            fs.writeSync(fd, requireModules.replace("''","','"));
+            fs.writeSync(fd, requireModules.replace(/''/g,"','"));
             done();
           }
         }
